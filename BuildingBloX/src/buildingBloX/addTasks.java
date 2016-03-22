@@ -11,7 +11,6 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
@@ -20,19 +19,19 @@ import javax.swing.*;
  *
  * @author up723003,up665478
  */
-public class WBTMenu extends javax.swing.JFrame {
+public class addTasks extends javax.swing.JFrame {
 
     /**
      * Creates new form WBTMenu
      */
-    private int height = 162;
-    private int rowCount = 5;
-    private ArrayList<String> mainList = new ArrayList<>();
-    private ArrayList<String> list = new ArrayList<>();
-    private ArrayList<Node> chartData = new ArrayList<>();
-    private ArrayList<ArrayList<Node>> nodeLayers = new ArrayList<ArrayList<Node>>();
+    int height = 162;
+    int rowCount = 5;
+    ArrayList<String> mainList = new ArrayList<>();
+    ArrayList<String> list = new ArrayList<>();
+    ArrayList<Integer> rowsChecked = new ArrayList<>();
+    boolean loops = false;
 
-    public WBTMenu() {
+    public addTasks() {
         initComponents();
     }
 
@@ -68,7 +67,6 @@ public class WBTMenu extends javax.swing.JFrame {
         taskLabel = new javax.swing.JLabel();
         createChartButton = new javax.swing.JButton();
         workBreakdownTreeLabel = new javax.swing.JLabel();
-        backButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setUndecorated(true);
@@ -212,7 +210,7 @@ public class WBTMenu extends javax.swing.JFrame {
         taskLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         taskLabel.setText("Task");
 
-        createChartButton.setText("Create chart");
+        createChartButton.setText("Update chart");
         createChartButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 createChartButtonActionPerformed(evt);
@@ -222,13 +220,6 @@ public class WBTMenu extends javax.swing.JFrame {
         workBreakdownTreeLabel.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         workBreakdownTreeLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         workBreakdownTreeLabel.setText("Work Breakdown Tree");
-
-        backButton.setText("Back");
-        backButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                backButtonActionPerformed(evt);
-            }
-        });
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -251,8 +242,7 @@ public class WBTMenu extends javax.swing.JFrame {
                         .add(previousTaskLabel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 200, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                         .add(0, 0, Short.MAX_VALUE))
                     .add(layout.createSequentialGroup()
-                        .add(backButton, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 90, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .add(0, 0, Short.MAX_VALUE)
                         .add(workBreakdownTreeLabel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 239, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                         .add(129, 129, 129)))
                 .addContainerGap())
@@ -261,10 +251,8 @@ public class WBTMenu extends javax.swing.JFrame {
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
                 .add(12, 12, 12)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(workBreakdownTreeLabel)
-                    .add(backButton))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 24, Short.MAX_VALUE)
+                .add(workBreakdownTreeLabel)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 28, Short.MAX_VALUE)
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                     .add(taskNameLabel)
                     .add(previousTaskLabel)
@@ -307,28 +295,9 @@ public class WBTMenu extends javax.swing.JFrame {
         updateDropDown();
     }//GEN-LAST:event_task5NameFocusLost
 
-    private void backButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backButtonActionPerformed
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Windows".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    MainMenu menu = new MainMenu();
-                    menu.setVisible(true);
-                }
-
-            }
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
-            Logger.getLogger(BuildingBloX.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        this.dispose();
-    }//GEN-LAST:event_backButtonActionPerformed
-
     private void createChartButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createChartButtonActionPerformed
         if (validateInputs()) {
-            createListOfNodes();
-            createListOfLayers();
-            new GraphFrame(nodeLayers, "WBT").setVisible(true);
-            this.dispose();
+            //creat chart next window
         }
     }//GEN-LAST:event_createChartButtonActionPerformed
 
@@ -399,43 +368,21 @@ public class WBTMenu extends javax.swing.JFrame {
         //remove all null values from template as textField is empty
         //remove dropdown option from textfield next to it
         int a = 1;
-        int j = 1;
-        int k=5;
         for (Component C : taskHolder.getComponents()) {
             if (C instanceof JComboBox) {
-                if (j <= 5) {
-                    list = (ArrayList<String>) mainList.clone();
-                    list.remove(list.size() - a);
-                    list.removeAll(Arrays.asList(null, ""));
+                list = (ArrayList<String>) mainList.clone();
+                list.remove(list.size() - a);
+                list.removeAll(Arrays.asList(null, ""));
 
-                    String x = ((String) ((JComboBox) C).getSelectedItem());
+                String x = ((String) ((JComboBox) C).getSelectedItem());
+                //cast component to JComboBox
+                ((JComboBox) C).setModel(new DefaultComboBoxModel(list.toArray()));
+                ((JComboBox) C).setSelectedItem(x);
+                //set first dropDown as none
 
-                    //cast component to JComboBox
-                    ((JComboBox) C).setModel(new DefaultComboBoxModel(list.toArray()));
-                    ((JComboBox) C).setSelectedItem(x);
-
-                    //set first dropDown as none
-                    task1Dropdown.addItem("None");
-                    task1Dropdown.setSelectedItem("None");
-                    a++;
-                    j++;
-                }
-                else{
-                    list = (ArrayList<String>) mainList.clone();
-                    list.remove(k);
-                    list.removeAll(Arrays.asList(null, ""));
-
-                    String x = ((String) ((JComboBox) C).getSelectedItem());
-
-                    //cast component to JComboBox
-                    ((JComboBox) C).setModel(new DefaultComboBoxModel(list.toArray()));
-                    ((JComboBox) C).setSelectedItem(x);
-
-                    //set first dropDown as none
-                    task1Dropdown.addItem("None");
-                    task1Dropdown.setSelectedItem("None");
-                    k++;
-                }
+                task1Dropdown.addItem("None");
+                task1Dropdown.setSelectedItem("None");
+                a++;
             }
         }
     }
@@ -456,10 +403,11 @@ public class WBTMenu extends javax.swing.JFrame {
         } else if (adjacentDropdown()) {
             JOptionPane.showMessageDialog(this, "You have tasks without a previous task!", "", JOptionPane.INFORMATION_MESSAGE);
             return false;
-        } else if (containsLoops()) {
-            JOptionPane.showMessageDialog(this, "Your tasks create a looped diagram!", "", JOptionPane.INFORMATION_MESSAGE);
+        } else if (checkForLooping()) {
+            System.out.println("Tefook.");
             return false;
         }
+        System.out.println("Grats.");
         return true;
     }
 
@@ -484,114 +432,55 @@ public class WBTMenu extends javax.swing.JFrame {
         return false;
     }
 
-    public boolean containsLoops() {
-        boolean loop = false;
-        createListOfNodes();
-        for (int i = 1; i < chartData.size(); i++) {
-            loop = false || searchNodeForLoop(chartData.get(i));
-        }
-        return loop;
-    }
-
-    public boolean searchNodeForLoop(Node first) {
-
-        if (first == null) // list does not exist..so no loop either.
-        {
-            return false;
-        }
-
-        Node slow, fast; // create two references.
-
-        slow = fast = first; // make both refer to the start of the list.
-
-        while (true) {
-
-            slow = slow.getParent();          // 1 hop.
-
-            if (fast.getParent() != null) {
-                fast = fast.getParent().getParent(); // 2 hops.
-            } else {
-                return false;          // next node null => no loop.
-            }
-            if (slow == null || fast == null) // if either hits null..no loop.
-            {
-                return false;
-            }
-
-            if (slow == fast) // if the two ever meet...we must have a loop.
-            {
-                return true;
-            }
-        }
-    }
-
     /**
      * check for a loop where parent nodes don't connect to root
+     *
+     * @return boolean true there is a loop
      */
-    public void createListOfNodes() {
-        chartData.clear();
-        chartData.add(new Node(task1Name.getText(), null));
-        for (int x = 0; x < rowCount; x++) {
-            int row = (48 + x * 38);
-            for (Component C : taskHolder.getComponents()) {
-                if (C instanceof JTextField && !(((JTextField) C).getText().trim().isEmpty()) && ((JTextField) C).getY() == row) {
-                    for (Component D : taskHolder.getComponents()) {
-                        if (D instanceof JComboBox && ((JComboBox) D).getY() == row) {
-                            Node node = new Node(((JTextField) C).getText(), null);
-                            chartData.add(node);
-                        }
-                    }
-                }
-            }
-
+    public boolean checkForLooping() {
+        loops = false;
+        int a = 0;
+        while ((a < rowCount) && !loops) {
+            rowsChecked.clear();
+            checkForLoops((48 + a * 38));
+            a++;
         }
-        int a = 1;
-        for (int x = 0; x < rowCount; x++) {
-            int row = (48 + x * 38);
-
-            for (Component C : taskHolder.getComponents()) {
-                if (C instanceof JTextField && !(((JTextField) C).getText().trim().isEmpty()) && ((JTextField) C).getY() == row) {
-
-                    for (Component D : taskHolder.getComponents()) {
-                        if (D instanceof JComboBox && ((JComboBox) D).getY() == row) {
-                            Node update = chartData.get(a);
-                            int dropDownChoice = ((JComboBox) D).getSelectedIndex();
-                            if (dropDownChoice >= a) {
-                                update.addParent(chartData.get(dropDownChoice + 1));
-                            } else {
-                                update.addParent(chartData.get(dropDownChoice));
-                            }
-                            a++;
-                        }
-                    }
-                }
-            }
-
-        }
+        return loops;
     }
 
-    public void createListOfLayers() {
-        ArrayList<Node> nextLevel = new ArrayList<>();
-        nextLevel.add(chartData.get(0));
-        nodeLayers.add(nextLevel);
-        chartData.remove(0);
+    public void checkForLoops(int row) {
+        for (Component D : taskHolder.getComponents()) {
+            if ((D instanceof JComboBox) && (((JComboBox) D).getY() == row)) {
+                JComboBox E = ((JComboBox) D);
+                if (rowsChecked.contains(E.getY())) {
+                    loops = true;
+                } else {
+                    int option = E.getSelectedIndex();
+                    System.out.println(option);
+                    ArrayList<String> list2 = (ArrayList<String>) mainList.clone();
+                    int positionToFind = option;
+                    list2.remove((row - 48) / 38);
+                    int x = 0;
+                    int fullListPosition = 0;
+                    if (positionToFind < 0) {
+                        while (fullListPosition < positionToFind) {
+                            if (list2.get(x) == null) {
+                                x++;
+                            } else {
+                                fullListPosition++;
+                                x++;
+                            }
+                        }
+                        x++;
+                        if (x == 0) {
 
-        ArrayList<Node> previousLevel = nextLevel;
-
-        while (!chartData.isEmpty()) {
-            ArrayList<Node> nextLevel2 = new ArrayList<>();
-
-            for (int i = 0; i < chartData.size(); i++) {
-
-                if (previousLevel.contains(chartData.get(i).getParent())) {
-
-                    nextLevel2.add(chartData.get(i));
-                    chartData.set(i, null);
+                        } else {
+                            rowsChecked.add(row);
+                            checkForLoops(48 + (x * 38));
+                        }
+                    }
                 }
             }
-            chartData.removeAll(Collections.singleton(null));
-            nodeLayers.add(nextLevel2);
-            previousLevel = nextLevel2;
         }
     }
 
@@ -613,30 +502,30 @@ public class WBTMenu extends javax.swing.JFrame {
             }
         } catch (ClassNotFoundException ex) {
             System.out.println("1");
-            java.util.logging.Logger.getLogger(WBTMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(addTasks.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
             System.out.println("2");
-            java.util.logging.Logger.getLogger(WBTMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(addTasks.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
             System.out.println("3");
-            java.util.logging.Logger.getLogger(WBTMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(addTasks.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             System.out.println("4");
-            java.util.logging.Logger.getLogger(WBTMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(addTasks.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
-                new WBTMenu().setVisible(true);
+                new addTasks().setVisible(true);
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton backButton;
     private javax.swing.JButton createChartButton;
     private javax.swing.JScrollPane fieldHolder;
     private javax.swing.JButton moreTasksButton;
